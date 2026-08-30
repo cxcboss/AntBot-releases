@@ -200,7 +200,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:1}
 .chat-stream{display:flex;flex-direction:column;max-width:640px;margin:0 auto;min-height:100%}
 .run-group{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:0 0 4px}
 .run-group.ctx-selected{opacity:.45}
-.task-stack{width:100%;max-width:720px}
+.task-stack{width:100%;max-width:360px}
 .chat-time-divider{display:flex;justify-content:center;padding:20px 0 6px;font-size:11px;color:var(--muted-foreground)}
 .msg-user{position:relative;align-self:flex-end;display:flex;flex-direction:column;align-items:flex-end;cursor:default}
 .msg-content{max-width:72%;padding:8px 12px;border-radius:var(--radius-lg);background:var(--accent);color:var(--accent-foreground);font-size:13px;line-height:1.6;white-space:pre-wrap;word-break:break-word}
@@ -209,17 +209,15 @@ input[type=number]::-webkit-inner-spin-button{opacity:1}
 
 /* 规则面板 */
 
-/* 任务卡片（App 对齐） */
+/* 任务卡片：宽度减半、去状态色条、徽章右上角（v1.2.7 与桌面端一致） */
 .task-stack{display:flex;flex-direction:column;gap:4px}
 .task-stack.collapsed .task:nth-child(n+2){display:none}
 .task-stack-summary{font-size:11px;color:var(--muted-foreground);text-align:center;padding:2px 0;cursor:pointer;transition:color var(--transition-fast)}
 .task-stack-summary:hover{color:var(--foreground)}
-.task{position:relative;overflow:hidden;border:1px solid var(--border);border-radius:var(--radius);background:var(--card);width:100%;max-width:720px;transition:border-color var(--transition-fast)}
-.task::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:transparent}
-.task.warning::before,.task.failed::before,.task.running::before,.task.preparing::before,.task.queued::before,.task.pending::before{background:var(--border)}
+.task{position:relative;overflow:hidden;border:1px solid var(--border);border-radius:var(--radius);background:var(--card);width:100%;max-width:360px;transition:border-color var(--transition-fast)}
 .task-inner{display:flex;flex-direction:column;gap:2px;padding:4px 8px}
-.task-head{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0}
-.task-title{flex:0 1 auto;max-width:100%;font-size:12px;font-weight:500;color:var(--foreground);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.task-head{display:flex;align-items:center;gap:6px;min-width:0}
+.task-title{flex:1 1 auto;font-size:12px;font-weight:500;color:var(--foreground);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .task-title-orig{margin-left:4px;padding:0 5px;border-radius:9999px;background:var(--muted);color:var(--muted-foreground);font-size:11px;line-height:14px;flex-shrink:0}
 
 /* 右键/长按菜单（复制/删除记录） */
@@ -283,6 +281,18 @@ input[type=number]::-webkit-inner-spin-button{opacity:1}
 .opt-btn.busy svg{animation:opt-spin .8s linear infinite}
 @keyframes opt-spin{to{transform:rotate(360deg)}}
 .pv-bar{max-width:640px;margin:0 auto var(--space-2);background:var(--muted);border-radius:var(--radius-lg);padding:var(--space-2) var(--space-3);font-size:12px;color:var(--muted-foreground);display:flex;flex-direction:column;gap:4px;max-height:180px;overflow-y:auto}
+.pv-row{display:flex;align-items:center;flex-wrap:wrap;gap:4px}
+.pv-edit-btn{margin-left:auto;border:none;background:transparent;color:var(--muted-foreground);font-size:11px;cursor:pointer;padding:2px 6px;border-radius:var(--radius-sm);transition:background var(--transition-fast),color var(--transition-fast)}
+.pv-edit-btn:hover{background:var(--popover);color:var(--foreground)}
+.pv-editor{min-width:230px;max-width:280px;font-size:12px}
+.pv-ed-row{display:flex;align-items:center;gap:8px;padding:5px 0}
+.pv-ed-row>label{font-size:11px;color:var(--muted-foreground);width:32px;flex-shrink:0}
+.pv-ed-seg{display:flex;background:var(--muted);border-radius:var(--radius-sm);padding:2px;gap:2px;flex:1}
+.pv-ed-seg button{flex:1;border:none;background:transparent;color:var(--muted-foreground);font-size:11px;padding:4px 6px;border-radius:var(--radius-sm);cursor:pointer}
+.pv-ed-seg button[data-on]{background:var(--popover);color:var(--foreground);box-shadow:var(--shadow-xs)}
+.pv-ed-input{flex:1;min-width:0;border:1px solid var(--input);border-radius:var(--radius-sm);background:var(--popover);color:var(--foreground);font-size:12px;padding:4px 8px}
+.pv-ed-input:focus{outline:none;border-color:var(--ring)}
+.pv-ed-acts{display:flex;gap:8px;justify-content:flex-end;padding-top:8px}
 .pv-head{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .pv-badge{font-size:11px;font-weight:500;padding:1px 6px;border-radius:var(--radius-xs);background:var(--secondary);border:1px solid var(--border);color:var(--muted-foreground)}
 .pv-badge.ai{background:var(--accent);color:var(--accent-foreground);border-color:transparent}
@@ -696,7 +706,11 @@ function fallbackCopy(text){
 function connectSSE(){
   if(sseSource){sseSource.close();sseSource=null;}
   sseSource=new EventSource(API+'/remote/events?token='+token);
-  sseSource.onopen=()=>{consecutiveErrors=0;hideBanner()};
+  sseSource.onopen=()=>{
+    consecutiveErrors=0;hideBanner();
+    // 重连/首次连上即全量拉平（SSE 断线期间丢掉的事件不再依赖增量补偿）
+    loadTasks().catch(()=>{});
+  };
   sseSource.addEventListener('task-update',e=>{
     const t=JSON.parse(e.data);const i=tasks.findIndex(x=>x.id===t.id);
     if(i>=0)tasks[i]={...tasks[i],...t};else tasks.push(t);
@@ -734,6 +748,9 @@ function connectSSE(){
     else if(consecutiveErrors>=1){showBanner('checking')}
   };
 }
+
+// 30s 低频轮询兜底：SSE 在隧道下可能静默断流，轮询保证任务状态最终一致（页面不可见时跳过）
+setInterval(()=>{if(document.visibilityState==='visible'&&typeof token==='string'&&token){loadTasks().catch(()=>{});}},30000);
 
 async function reconnectViaHub(){
   if(reconnectTimer)clearTimeout(reconnectTimer);
@@ -1687,7 +1704,7 @@ async function sendTask(forceItems){
   const text=input.value.trim();
   const pv=preview;
   if(!text&&!(pv.items&&pv.items.length)){showToast('请输入任务');return;}
-  const useItems=forceItems||(pv.items&&pv.items.length&&pv.mode==='optimized');
+  const useItems=forceItems||(pv.items&&pv.items.length&&(pv.mode==='optimized'||pv.edited));
   input.disabled=true;const btn=document.getElementById('send-btn');if(btn)btn.disabled=true;
   try{
     const body=useItems?{tasks:pv.items.map(t=>({id:t.id,rawLine:t.rawLine,taskName:t.taskName,isOriginal:!!t.isOriginal,videoUrl:t.videoUrl,timeRange:t.timeRange||'',platforms:t.platforms||[],publishCopy:t.publishCopy||'',publishTopics:t.publishTopics||[],campaignName:t.campaignName||'',publishAt:t.publishAt||null})),text}:{text};
@@ -1759,15 +1776,89 @@ function renderPvBar(){
     if(t.publishAt)tags.push('<span class="pv-tag">'+esc(fmtPvTime(t.publishAt))+'</span>');else tags.push('<span class="pv-tag">立即发布</span>');
     if(t.campaignName)tags.push('<span class="pv-tag accent">活动:'+esc(t.campaignName)+'</span>');
     const title=(t.taskName&&t.taskName!=='普通')?'<span class="pv-title">'+esc(t.taskName)+'</span>':'';
-    return '<div class="pv-row">'+tags.join('')+title+'</div>';
+    return '<div class="pv-row">'+tags.join('')+title+'<button type="button" class="pv-edit-btn" data-pv-edit="'+i+'">编辑</button></div>';
   }).join('');
   const more=p.count>p.items.length?('<div class="pv-row">…共 '+p.count+' 条</div>'):'';
   const warns=(p.warnings||[]).map(w=>'<div class="pv-warn">'+esc(w)+'</div>').join('');
   const err=p.error?'<div class="pv-warn">'+esc(p.error)+'</div>':'';
-  const confirm=(p.items&&p.items.length)?('<div class="pv-acts"><button class="btn btn-sm btn-primary" type="button" id="pv-confirm-btn">'+((p.mode==='optimized')?'确定发送':'发送')+'</button></div>'):'';
+  const confirm=(p.items&&p.items.length)?('<div class="pv-acts"><button class="btn btn-sm btn-primary" type="button" id="pv-confirm-btn">'+((p.mode==='optimized'||p.edited)?'确定发送':'发送')+'</button></div>'):'';
   bar.innerHTML='<div class="pv-head">'+srcBadge+'<span class="pv-count">'+p.count+' 条任务</span>'+defTxt+'</div>'+items+more+warns+err+confirm;
   const c=document.getElementById('pv-confirm-btn');
   if(c)c.addEventListener('click',()=>sendTask(true));
+  bar.querySelectorAll('[data-pv-edit]').forEach(btn=>{
+    btn.addEventListener('click',e=>{e.stopPropagation();openPvEditor(Number(btn.dataset.pvEdit),btn);});
+  });
+}
+
+/* ── 解析预览编辑（对齐 App 端 openPvEditor） ── */
+function parsePvTimeText(txt){
+  const s=String(txt||'').trim();
+  if(!s||s==='立即发布'||s==='立刻')return null;
+  const now=new Date();
+  const hm=s.match(/(\d{1,2}):(\d{2})/);
+  if(!hm)return undefined; // 无法解析
+  let day=new Date();
+  if(/明天/.test(s))day=new Date(now.getTime()+86400000);
+  const md=s.match(/(\d{1,2})-(\d{1,2})/);
+  if(md)day=new Date(now.getFullYear(),Number(md[1])-1,Number(md[2]));
+  return new Date(day.getFullYear(),day.getMonth(),day.getDate(),Number(hm[1]),Number(hm[2])).toISOString();
+}
+function openPvEditor(i,anchor){
+  closeChipPopup();
+  const t=(preview.items||[])[i];
+  if(!t)return;
+  const pf=(t.platforms||[]);
+  const pfVal=pf.includes('videoChannel')&&pf.includes('douyin')?'both':(pf.includes('douyin')?'douyin':'videoChannel');
+  const popup=document.createElement('div');popup.className='chip-popup pv-editor';
+  popup.innerHTML=
+    '<div class="pv-ed-row"><label>平台</label><div class="pv-ed-seg" data-pv-pf>'+
+    '<button type="button" data-v="videoChannel"'+(pfVal==='videoChannel'?' data-on="1"':'')+'>视频号</button>'+
+    '<button type="button" data-v="douyin"'+(pfVal==='douyin'?' data-on="1"':'')+'>抖音</button>'+
+    '<button type="button" data-v="both"'+(pfVal==='both'?' data-on="1"':'')+'>两者</button></div></div>'+
+    '<div class="pv-ed-row"><label>原创</label><div class="toggle-switch'+(t.isOriginal?' on':'')+'" data-pv-orig></div></div>'+
+    '<div class="pv-ed-row"><label>定时</label><input class="pv-ed-input" data-pv-time placeholder="立刻 / 16:00 / 明天 10:00" value="'+(t.publishAt?esc(fmtPvTime(t.publishAt)):'')+'"></div>'+
+    '<div class="pv-ed-row"><label>标题</label><input class="pv-ed-input" data-pv-title value="'+esc(t.taskName||'')+'"></div>'+
+    '<div class="pv-ed-row"><label>话题</label><input class="pv-ed-input" data-pv-topics value="'+esc((t.publishTopics||[]).join(' '))+'" placeholder="空格分隔"></div>'+
+    '<div class="pv-ed-row"><label>活动</label><input class="pv-ed-input" data-pv-campaign value="'+esc(t.campaignName||'')+'"></div>'+
+    '<div class="pv-ed-acts"><button type="button" class="btn btn-sm btn-primary" data-pv-save>保存</button><button type="button" class="btn btn-sm btn-ghost" data-pv-del>删除此任务</button></div>';
+  positionChipPopup(popup,anchor);
+  let curPf=pfVal;
+  popup.querySelectorAll('[data-pv-pf] button').forEach(b=>{
+    b.addEventListener('click',()=>{
+      curPf=b.dataset.v;
+      popup.querySelectorAll('[data-pv-pf] button').forEach(x=>x.removeAttribute('data-on'));
+      b.setAttribute('data-on','1');
+    });
+  });
+  const origSw=popup.querySelector('[data-pv-orig]');
+  origSw.addEventListener('click',()=>origSw.classList.toggle('on'));
+  popup.querySelector('[data-pv-save]').addEventListener('click',()=>{
+    const timeTxt=popup.querySelector('[data-pv-time]').value.trim();
+    let publishAt;
+    if(timeTxt&&timeTxt!=='立即发布'){
+      publishAt=parsePvTimeText(timeTxt);
+      if(publishAt===undefined){showToast('定时格式无法识别，可用：立刻 / 16:00 / 明天 10:00');return;}
+    }
+    t.platforms=curPf==='both'?['videoChannel','douyin']:[curPf];
+    t.isOriginal=origSw.classList.contains('on');
+    t.publishAt=publishAt||null;
+    const title=popup.querySelector('[data-pv-title]').value.trim();
+    if(title)t.taskName=title;
+    t.publishTopics=popup.querySelector('[data-pv-topics]').value.trim().split(/\s+/).filter(Boolean);
+    t.campaignName=popup.querySelector('[data-pv-campaign]').value.trim();
+    preview.edited=true;
+    closeChipPopup();
+    renderPvBar();
+    showToast('已编辑，确定发送后生效');
+  });
+  popup.querySelector('[data-pv-del]').addEventListener('click',()=>{
+    preview.items.splice(i,1);
+    preview.count=Math.max(0,preview.count-1);
+    preview.edited=preview.items.length>0;
+    closeChipPopup();
+    if(!preview.items.length)resetPreview();else renderPvBar();
+    showToast('已删除该任务');
+  });
 }
 
 /* ── 时间线渲染（与 App 主控对齐） ── */
@@ -1911,12 +2002,14 @@ function taskCard(t,live){
     if(isExpired&&!isCompleted&&st!=='running'&&st!=='queued'&&!isTerminalFailed)meta.push('<span class="task-meta-item">定时已过期 '+(d.getMonth()+1)+'/'+d.getDate()+' '+pad(d.getHours())+':'+pad(d.getMinutes())+'</span>');
     else meta.push('<span class="task-meta-item">定时 '+(d.getMonth()+1)+'/'+d.getDate()+' '+pad(d.getHours())+':'+pad(d.getMinutes())+'</span>');
   }}
+  // 耗时成功态外显在 meta 行（与桌面端一致，v1.2.7）
+  const exec=r._exec||{};
+  if(isCompleted&&r.duration>0)meta.push('<span class="task-meta-item">耗时 <b>'+fmtDuration(r.duration)+'</b></span>');
   const metaHtml=meta.length?('<div class="task-meta">'+meta.join('')+'</div>'):'';
 
-  // 执行详情：耗时 + 旁白/字幕/音色/风格（来源/动作已在元信息行，不重复）
-  const exec=r._exec||{};
+  // 执行详情：旁白/字幕/音色/风格/阶段（耗时仅未完成时折叠展示）
   const detail=[];
-  if(r.duration>0)detail.push('<span class="task-detail-item">耗时 <b>'+fmtDuration(r.duration)+'</b></span>');
+  if(!isCompleted&&r.duration>0)detail.push('<span class="task-detail-item">耗时 <b>'+fmtDuration(r.duration)+'</b></span>');
   if(exec.styleName)detail.push('<span class="task-detail-item">风格 <b>'+esc(exec.styleName)+'</b></span>');
   if(exec.voiceName)detail.push('<span class="task-detail-item">音色 <b>'+esc(exec.voiceName)+'</b></span>');
   if(exec.voiceover!==undefined)detail.push('<span class="task-detail-item">旁白 <b>'+(exec.voiceover?'开':'关')+'</b></span>');
@@ -1933,12 +2026,15 @@ function taskCard(t,live){
   if(live&&['queued','pending'].includes(st))acts.push('<button class="task-btn" data-action="skip" data-id="'+esc(taskId)+'">跳过</button>');
   if(live&&['running'].includes(st))acts.push('<button class="task-btn" data-action="stop" data-id="'+esc(taskId)+'">取消</button>');
   if((live||t.history)&&['failed','stopped'].includes(st))acts.push('<button class="task-btn" data-action="retry" data-id="'+esc(taskId)+'">重试</button>');
-  if(isCompleted&&t.outputPath&&r.processMode==='publish')acts.push('<button class="task-btn" data-action="republish" data-id="'+esc(taskId)+'">重发</button>');
+  /* 待发布（用户关闭自动发布）→ 显式"发布"按钮：走仅发布通道；完成态不再显示"重发"（v1.2.7 与桌面端一致） */
+  if(expectedUnpublished&&t.outputPath&&r.processMode==='publish')acts.push('<button class="task-btn" data-action="republish" data-id="'+esc(taskId)+'">发布</button>');
+  if(st==='failed'&&t.outputPath&&r.processMode==='publish')acts.push('<button class="task-btn" data-action="republish" data-id="'+esc(taskId)+'">重发</button>');
   if(r.videoUrl)acts.push('<a class="task-btn" href="'+esc(r.videoUrl)+'" target="_blank" rel="noreferrer">复制</a>');
   const actsHtml=acts.length?('<div class="task-actions">'+acts.join('')+'</div>'):'';
   const timeStr=t.startedAt||t.enqueuedAt?('<span class="task-time">'+esc(fmtGroupTime(t.startedAt||t.enqueuedAt))+'</span>'):'';
 
-  const inner='<div class="task-inner"><div class="task-head"><div class="task-title" title="'+esc(title)+'">'+esc(title)+' '+origTag+' '+titleMeta+'</div>'+detailToggle+'<div class="task-badge">'+esc(badge)+'</div>'+timeStr+'</div>'+metaHtml+detailHtml+progressHtml+msg+actsHtml+'</div>';
+  /* 徽章放行尾 → 状态落在卡片右上角（title 占左，与桌面端一致） */
+  const inner='<div class="task-inner"><div class="task-head"><div class="task-title" title="'+esc(title)+'">'+esc(title)+' '+origTag+' '+titleMeta+'</div>'+detailToggle+timeStr+'<div class="task-badge">'+esc(badge)+'</div></div>'+metaHtml+detailHtml+progressHtml+msg+actsHtml+'</div>';
   const overlay=isCancelling?'<div class="task-cancelling">取消中...</div>':'';
   return '<div class="task '+esc(st)+'">'+inner+overlay+'</div>';
 }
