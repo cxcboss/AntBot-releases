@@ -70,7 +70,8 @@
   <div id="modal-root"></div>
 
 <script>
-const REFRESH_INTERVAL = 10000;
+// 60s 轮询 + 页面隐藏时暂停：KV list/读配额有限，10s 轮询曾把日配额烧穿导致设备列表 1101
+const REFRESH_INTERVAL = 60000;
 let refreshTimer = null;
 
 function formatTime(ts) {
@@ -178,6 +179,15 @@ async function fetchDevices() {
   }
 }
 
+fetchDevices();
+// 页面可见时才轮询；隐藏期间暂停，回到前台立即刷一次
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
+  } else {
+    if (!refreshTimer) { fetchDevices(); refreshTimer = setInterval(fetchDevices, REFRESH_INTERVAL); }
+  }
+});
 fetchDevices();
 refreshTimer = setInterval(fetchDevices, REFRESH_INTERVAL);
 </script>

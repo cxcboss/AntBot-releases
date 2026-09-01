@@ -1,8 +1,12 @@
 {
-  "version": "1.9.13",
-  "publishedAt": "2026-08-30T13:01:14Z",
+  "version": "1.9.14",
+  "publishedAt": "2026-09-01T07:28:27Z",
   "files": {
-    "remote-ui/index.html": { "sha256": "11ec4d9234538a89848d2ac248e06c6eb807b702f0910f05663195b5e65f1753" },
-    "hub/index.html": { "sha256": "bff52935de68bab9e83a6f2662cf3970033a83a2850333702f7673dfc1bc2d14" }
+    "remote-ui/index.html": {
+      "sha256": "11ec4d9234538a89848d2ac248e06c6eb807b702f0910f05663195b5e65f1753"
+    },
+    "hub/index.html": {
+      "sha256": "a9623b1a827918a67b572da4504f1383ca00cde88f8482d61a7f05f6cce7637d"
+    }
   }
 }
