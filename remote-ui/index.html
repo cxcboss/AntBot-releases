@@ -98,6 +98,7 @@ input,textarea{font-family:var(--font-sans)}
 .input-field{height:auto;resize:none;padding:8px 12px;line-height:1.4;max-height:120px}
 .form-label{display:block;font-size:11px;font-weight:500;color:var(--muted-foreground);margin-bottom:6px;letter-spacing:.5px}
 .form-group{margin-bottom:var(--space-4)}
+.form-hint{margin-top:var(--space-1);font-size:11px;color:var(--muted-foreground)}
 input[type=range]{width:100%;height:4px;-webkit-appearance:none;background:var(--muted);border-radius:var(--radius-full);outline:none}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--primary);cursor:pointer;border:none}
 input[type=number]{-moz-appearance:textfield}
@@ -267,6 +268,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:1}
 /* 空状态 */
 .empty{text-align:center;padding:var(--space-10) var(--space-4);color:var(--muted-foreground);font-size:13px;margin:auto}
 .empty-icon{font-size:32px;margin-bottom:var(--space-2);opacity:.5}
+.empty-hint{max-width:280px;margin:var(--space-2) auto 0;font-size:12px;line-height:1.5}
 
 /* ── 输入条 ── */
 .input-bar{border-top:1px solid var(--border);padding:var(--space-2) var(--space-4) var(--space-3);background:var(--background);flex-shrink:0}
@@ -518,7 +520,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:1}
 <div id="app"></div>
 <script>
 const HUB_URL='https://hub.onebugmanai.online';
-const APP_VERSION='1.9.12';
+const APP_VERSION='1.9.15';
 let API=window.location.origin;
 let token=localStorage.getItem('antbot-token');
 let tasks=[];
@@ -880,7 +882,7 @@ function renderAppShell(){
           <label class="chat-search"><span style="font-size:13px">⌕</span><input id="chat-search-input" type="search" placeholder="搜索标题、链接或错误" /></label>
         </div>
         </div>
-        <div class="chat" id="chat"><div class="chat-stream" id="chat-stream"><div class="empty" id="empty-state"><div class="empty-icon">📋</div><div>粘贴视频链接开始下载</div></div></div></div>
+        <div class="chat" id="chat"><div class="chat-stream" id="chat-stream"><div class="empty" id="empty-state"><div class="empty-icon">📋</div><div>从一句话开始创建任务</div><div class="empty-hint">主控负责整条流程；只下载、剪辑本地视频或单独发布时，请使用电脑端对应页面。</div></div></div></div>
       </div>
       <div class="page" id="page-subtitle">
         <div class="section-title">字幕设置</div>
@@ -921,7 +923,7 @@ function renderAppShell(){
       </div>
       <div class="page" id="page-remote">
         <div class="section-title">远程设置</div>
-        <div class="form-group"><label class="form-label">密码</label><input class="form-input" id="remote-pass" type="password"></div>
+        <div class="form-group"><label class="form-label">新密码</label><input class="form-input" id="remote-pass" type="password" placeholder="输入新密码以更改" autocomplete="new-password"><div class="form-hint" id="remote-pass-status">留空不会修改当前密码</div></div>
         <button class="btn btn-primary btn-block" id="remote-save-btn" type="button">保存并重新登录</button>
       </div>
       <div class="page" id="page-monitor">
@@ -1130,7 +1132,7 @@ function bindEvents(){
   });
   document.getElementById('remote-save-btn')?.addEventListener('click',async()=>{
     const p=document.getElementById('remote-pass')?.value?.trim();
-    if(!p){showToast('请设置密码');return;}
+    if(!p){showToast('当前密码未修改');return;}
     await api('POST','/remote/settings',{remote:{password:p}});
     showToast('已保存，需重新登录');setTimeout(logout,1000);
   });
@@ -1373,7 +1375,9 @@ async function loadSubtitleSettings(){
 }
 async function loadRemoteSettings(){
   const d=await api('GET','/remote/credentials');if(!d)return;
-  const p=document.getElementById('remote-pass');if(p)p.value=d.password||'';
+  const hasPassword=Boolean(d.hasPassword||d.password); // 兼容旧版服务仍返回 password 的响应。
+  const p=document.getElementById('remote-pass');if(p){p.value='';p.placeholder=hasPassword?'已设置；输入新密码以更改':'请设置远程访问密码';}
+  const status=document.getElementById('remote-pass-status');if(status)status.textContent=hasPassword?'已设置；留空不会修改当前密码':'未设置；请先设置密码后再使用远程访问';
 }
 
 async function checkPlatformLogin(platform){
