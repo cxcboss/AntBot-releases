@@ -210,11 +210,26 @@ input[type=number]::-webkit-inner-spin-button{opacity:1}
 
 /* 规则面板 */
 
-/* 任务卡片：宽度减半、去状态色条、徽章右上角（v1.2.7 与桌面端一致） */
-.task-stack{display:flex;flex-direction:column;gap:4px}
-.task-stack.collapsed .task:nth-child(n+2){display:none}
-.task-stack-summary{font-size:11px;color:var(--muted-foreground);text-align:center;padding:2px 0;cursor:pointer;transition:color var(--transition-fast)}
-.task-stack-summary:hover{color:var(--foreground)}
+/* 任务卡片集合：折叠态保留首卡与两层叠影，展开在同一视觉锚点内完成 */
+.task-stack{display:flex;flex-direction:column;gap:var(--space-1)}
+.task-stack-summary{display:flex;align-items:center;gap:var(--space-2);width:100%;min-height:28px;padding:0 var(--space-2);border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--card);color:var(--muted-foreground);font-size:11px;font-weight:500;text-align:left;cursor:pointer;transition:background var(--transition-fast),border-color var(--transition-fast),color var(--transition-fast)}
+.task-stack-summary:hover{background:var(--muted);border-color:var(--muted-foreground);color:var(--foreground)}
+.task-stack-summary:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+.task-stack-summary-meta{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.task-stack-summary-action{margin-left:auto;white-space:nowrap;color:var(--foreground)}
+.task-stack-summary-chevron{font-size:16px;line-height:1;flex-shrink:0;transition:transform var(--transition-normal)}
+.task-stack:not(.collapsed) .task-stack-summary-chevron{transform:rotate(90deg)}
+.task-stack-preview{position:relative;max-height:0;margin:0;padding:0;overflow:hidden;opacity:0;pointer-events:none;transition:max-height var(--transition-normal),margin var(--transition-normal),padding var(--transition-normal),opacity var(--transition-normal)}
+.task-stack-preview::before,.task-stack-preview::after{content:"";position:absolute;inset:0;border:1px solid var(--border);border-radius:var(--radius);background:var(--secondary);opacity:0;transition:opacity var(--transition-normal),transform var(--transition-normal)}
+.task-stack-preview::before{z-index:0;transform:translate(var(--space-2),var(--space-2))}
+.task-stack-preview::after{z-index:1;transform:translate(var(--space-1),var(--space-1))}
+.task-stack-preview .task{position:relative;z-index:2}
+.task-stack-preview .task-acts,.task-stack-preview .task-detail-toggle{display:none}
+.task-stack.collapsed .task-stack-preview{max-height:240px;margin-top:var(--space-1);padding-right:var(--space-2);padding-bottom:var(--space-2);overflow:visible;opacity:1}
+.task-stack.collapsed .task-stack-preview::before,.task-stack.collapsed .task-stack-preview::after{opacity:1}
+.task-stack-cards{display:grid;grid-template-rows:1fr;opacity:1;transform:translateY(0);transition:grid-template-rows var(--transition-normal),opacity var(--transition-normal),transform var(--transition-normal)}
+.task-stack-cards-inner{display:flex;flex-direction:column;min-height:0;gap:var(--space-1);overflow:hidden}
+.task-stack.collapsed .task-stack-cards{grid-template-rows:0fr;opacity:0;transform:translateY(calc(var(--space-1)*-1));pointer-events:none}
 .task{position:relative;overflow:hidden;border:1px solid var(--border);border-radius:var(--radius);background:var(--card);width:100%;max-width:360px;transition:border-color var(--transition-fast)}
 .task-inner{display:flex;flex-direction:column;gap:2px;padding:4px 8px}
 .task-head{display:flex;align-items:center;gap:6px;min-width:0}
@@ -520,7 +535,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:1}
 <div id="app"></div>
 <script>
 const HUB_URL='https://hub.onebugmanai.online';
-const APP_VERSION='1.9.15';
+const APP_VERSION='1.9.16';
 let API=window.location.origin;
 let token=localStorage.getItem('antbot-token');
 let tasks=[];
@@ -1072,12 +1087,16 @@ function bindEvents(){
     const stackToggle=e.target.closest('[data-stack-toggle]');
     if(stackToggle){
       const key=stackToggle.dataset.stackKey||'';
-      const stack=stackToggle.nextElementSibling;
-      if(stack&&stack.classList.contains('task-stack')){
-        const willExpand=stack.classList.contains('collapsed');
-        if(willExpand)expandedStacks.add(key);else expandedStacks.delete(key);
-        stack.classList.toggle('collapsed',!willExpand);
-      }
+      const stack=stackToggle.closest('.task-stack');
+      if(!stack)return;
+      const willExpand=stack.classList.contains('collapsed');
+      if(willExpand)expandedStacks.add(key);else expandedStacks.delete(key);
+      stack.classList.toggle('collapsed',!willExpand);
+      stackToggle.setAttribute('aria-expanded',String(willExpand));
+      stackToggle.setAttribute('aria-label',willExpand?'收起任务':'展开 '+stack.querySelectorAll('.task-stack-cards .task').length+' 个任务');
+      const action=stackToggle.querySelector('[data-stack-action]');
+      if(action)action.textContent=stackToggle.getAttribute('aria-label');
+      if(willExpand)centerTaskStackAfterExpand(stack);
       return;
     }
     const detailToggle=e.target.closest('[data-task-detail]');
@@ -2043,6 +2062,54 @@ function taskCard(t,live){
   return '<div class="task '+esc(st)+'">'+inner+overlay+'</div>';
 }
 
+function taskStackPresentation(items,key,isForceExpand){
+  const running=items.filter(t=>['running','preparing'].includes(t.status)).length;
+  const failed=items.filter(t=>['failed','stopped'].includes(t.status)).length;
+  const isCollapsible=items.length>3&&!isForceExpand;
+  const collapsed=isCollapsible&&!expandedStacks.has(key);
+  return {
+    isCollapsible,
+    collapsed,
+    summary:'共 '+items.length+' 条 · 运行 '+running+' · 失败 '+failed,
+    actionLabel:collapsed?'展开 '+items.length+' 个任务':'收起任务',
+  };
+}
+function renderTaskStack(items,live,key,isForceExpand){
+  const presentation=taskStackPresentation(items,key,isForceExpand);
+  const cards=items.map(t=>taskCard(t,live)).join('');
+  if(!presentation.isCollapsible)return '<div class="task-stack">'+cards+'</div>';
+  const escapedKey=esc(key);
+  return '<div class="task-stack'+(presentation.collapsed?' collapsed':'')+'" data-stack-key="'+escapedKey+'">'+
+    '<button type="button" class="task-stack-summary" data-stack-toggle data-stack-key="'+escapedKey+'" aria-expanded="'+String(!presentation.collapsed)+'" aria-label="'+esc(presentation.actionLabel)+'">'+
+      '<span class="task-stack-summary-meta">'+esc(presentation.summary)+'</span>'+
+      '<span class="task-stack-summary-action" data-stack-action>'+esc(presentation.actionLabel)+'</span>'+
+      '<span class="task-stack-summary-chevron" aria-hidden="true">›</span>'+
+    '</button>'+
+    '<div class="task-stack-preview" aria-hidden="true">'+taskCard(items[0],live)+'</div>'+
+    '<div class="task-stack-cards"><div class="task-stack-cards-inner">'+cards+'</div></div>'+
+  '</div>';
+}
+function centerTaskStack(stack){
+  const target=stack.closest('.run-group')||stack;
+  const chat=document.getElementById('chat');
+  if(!chat){target.scrollIntoView({behavior:'smooth',block:'center'});return}
+  const targetRect=target.getBoundingClientRect();
+  const chatRect=chat.getBoundingClientRect();
+  const targetCenter=targetRect.top+Math.min(targetRect.height,chatRect.height)/2;
+  const chatCenter=chatRect.top+chatRect.height/2;
+  chat.scrollTo({top:Math.max(0,chat.scrollTop+targetCenter-chatCenter),behavior:'smooth'});
+}
+function centerTaskStackAfterExpand(stack){
+  const cards=stack.querySelector('.task-stack-cards');
+  if(!cards){centerTaskStack(stack);return}
+  const onTransitionEnd=event=>{
+    if(event.target!==cards||event.propertyName!=='opacity')return;
+    cards.removeEventListener('transitionend',onTransitionEnd);
+    centerTaskStack(stack);
+  };
+  cards.addEventListener('transitionend',onTransitionEnd);
+}
+
 function fmtGroupTime(at){
   if(!at)return '';
   const d=new Date(at);
@@ -2060,6 +2127,8 @@ function fmtGroupTime(at){
 function renderTimeline(){
   const el=document.getElementById('chat-stream'),empty=document.getElementById('empty-state');
   if(!el)return;
+  const chat=document.getElementById('chat');
+  const prevDistanceFromBottom=chat?chat.scrollHeight-chat.scrollTop-chat.clientHeight:0;
 
   const liveActive=tasks.some(t=>['queued','pending','running','preparing','cancelling'].includes(t.status));
   const stopAllBtn=document.getElementById('chat-stop-all');
@@ -2112,11 +2181,7 @@ function renderTimeline(){
   const group=(at,txt,rulesItems,items,live,key,recordId)=>{
     let tasksHtml='';
     if(items&&items.length){
-      const collapsed=!isForceExpand&&items.length>3&&!expandedStacks.has(key);
-      const running=items.filter(t=>['running','preparing'].includes(t.status)).length;
-      const failed=items.filter(t=>['failed','stopped'].includes(t.status)).length;
-      const summary=collapsed?'<div class="task-stack-summary" data-stack-toggle data-stack-key="'+esc(key)+'">共 '+items.length+' 条 · 运行 '+running+' · 失败 '+failed+'</div>':'';
-      tasksHtml=summary+'<div class="task-stack'+(collapsed?' collapsed':'')+'">'+items.map(t=>taskCard(t,live)).join('')+'</div>';
+      tasksHtml=renderTaskStack(items,live,key,isForceExpand);
     }
     if(at)parts.push('<div class="chat-time-divider">'+esc(fmtGroupTime(at))+'</div>');
     parts.push('<div class="run-group"'+(recordId?' data-record-id="'+esc(recordId)+'"':'')+' data-group-key="'+esc(key)+'" data-txt="'+encodeURIComponent(txt||'')+'">'+
@@ -2135,7 +2200,11 @@ function renderTimeline(){
   });
 
   el.innerHTML=parts.join('');
-  const chat=document.getElementById('chat');if(chat)chat.scrollTop=chat.scrollHeight;
+  if(chat){
+    chat.scrollTop=prevDistanceFromBottom<80
+      ?chat.scrollHeight
+      :Math.max(0,chat.scrollHeight-chat.clientHeight-prevDistanceFromBottom);
+  }
 }
 
 // ── Init ──
