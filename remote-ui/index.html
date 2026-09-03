@@ -217,24 +217,27 @@ input[type=number]::-webkit-inner-spin-button{opacity:1}
 .task-stack-summary:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
 .task-stack-summary-count{white-space:nowrap}
 .task-stack-summary-chevron{font-size:16px;line-height:1;flex-shrink:0;transition:transform var(--transition-normal)}
-.task-stack:not(.collapsed) .task-stack-summary-chevron{transform:rotate(90deg)}
+.task-stack:not(.collapsed) .task-stack-summary-chevron{transform:rotate(-90deg)}
 .task-stack-preview{position:relative;max-height:0;margin:0;padding:0;overflow:hidden;opacity:0;pointer-events:none;transition:max-height var(--transition-normal),margin var(--transition-normal),padding var(--transition-normal),opacity var(--transition-normal)}
 .task-stack-preview::before,.task-stack-preview::after{content:"";position:absolute;inset:0;border:1px solid var(--border);border-radius:var(--radius);background:var(--secondary);opacity:0;transition:opacity var(--transition-normal),transform var(--transition-normal)}
 .task-stack-preview::before{z-index:0;transform:translate(var(--space-2),var(--space-2))}
 .task-stack-preview::after{z-index:1;transform:translate(var(--space-1),var(--space-1))}
 .task-stack-preview .task{position:relative;z-index:2}
-.task-stack-preview .task-acts,.task-stack-preview .task-detail-toggle{display:none}
+.task-stack-preview .task-acts,.task-stack-preview .task-actions,.task-stack-preview .task-detail-toggle{display:none}
 .task-stack-preview{cursor:pointer}
 .task-stack-preview:focus-visible{outline:2px solid var(--ring);outline-offset:2px;border-radius:var(--radius)}
 .task-stack.collapsed .task-stack-preview{max-height:240px;margin-top:var(--space-1);padding-right:var(--space-2);padding-bottom:var(--space-2);overflow:visible;opacity:1;pointer-events:auto}
 .task-stack.collapsed .task-stack-preview::before,.task-stack.collapsed .task-stack-preview::after{opacity:1}
 .task-stack-cards{display:grid;grid-template-rows:1fr;opacity:1;transform:translateY(0);transition:grid-template-rows var(--transition-normal),opacity var(--transition-normal),transform var(--transition-normal)}
-.task-stack-cards-inner{display:flex;flex-direction:column;min-height:0;gap:var(--space-1);overflow:hidden}
+.task-stack-cards-inner{display:flex;flex-direction:column;min-height:0;gap:var(--space-2);overflow:hidden}
 .task-stack.collapsed .task-stack-cards{grid-template-rows:0fr;opacity:0;transform:translateY(calc(var(--space-1)*-1));pointer-events:none}
 .task{position:relative;overflow:hidden;border:1px solid var(--border);border-radius:var(--radius);background:var(--card);width:100%;max-width:360px;transition:border-color var(--transition-fast)}
-.task-inner{display:flex;flex-direction:column;gap:2px;padding:4px 8px}
-.task-head{display:flex;align-items:center;gap:6px;min-width:0}
-.task-title{flex:1 1 auto;font-size:12px;font-weight:500;color:var(--foreground);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.task:has(.task-detail){cursor:pointer}
+.task-inner{display:flex;flex-direction:column;gap:var(--space-2);padding:var(--space-3)}
+.task-head{display:flex;align-items:center;gap:var(--space-2);min-width:0}
+.task-head-main{display:flex;align-items:center;gap:var(--space-1);flex:1;min-width:0}
+.task-head-side{display:flex;align-items:center;gap:var(--space-2);flex-shrink:0}
+.task-title{flex:1 1 auto;font-size:13px;font-weight:500;color:var(--foreground);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .task-title-orig{margin-left:4px;padding:0 5px;border-radius:9999px;background:var(--muted);color:var(--muted-foreground);font-size:11px;line-height:14px;flex-shrink:0}
 
 /* 右键/长按菜单（复制/删除记录） */
@@ -246,10 +249,10 @@ input[type=number]::-webkit-inner-spin-button{opacity:1}
 .tl-menu-item.danger:active{background:var(--destructive-bg)}
 .task-title-index{margin-left:var(--space-1);font-size:10px;font-weight:400;color:var(--muted-foreground)}
 .task-badge{font-size:10px;font-weight:500;color:var(--muted-foreground);white-space:nowrap;flex-shrink:0;display:inline-flex;align-items:center;gap:4px}
-.task-msg{font-size:11px;color:var(--muted-foreground);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.task-msg{flex:1;min-width:0;font-size:12px;color:var(--muted-foreground);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .task-time{font-size:10px;color:var(--muted-foreground);white-space:nowrap}
-.task-meta{display:flex;flex-wrap:wrap;gap:2px 4px;font-size:11px;align-items:center}
-.task-meta-item{display:inline-flex;align-items:center;gap:3px;padding:0 6px;border-radius:9999px;background:var(--muted);color:var(--muted-foreground);line-height:14px}
+.task-meta{display:flex;flex-wrap:wrap;gap:var(--space-1) var(--space-2);font-size:11px;align-items:center}
+.task-meta-item{display:inline-flex;align-items:center;gap:var(--space-1);min-height:20px;padding:0 var(--space-2);border-radius:var(--radius-full);background:var(--muted);color:var(--muted-foreground);line-height:20px}
 .task-meta-campaign{background:var(--accent);color:var(--accent-foreground)}
 .task-meta-campaign b{font-weight:600}
 .task-meta-time{color:var(--muted-foreground)}
@@ -259,7 +262,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:1}
 .task-detail-toggle.open .td-chevron{transform:rotate(90deg)}
 .task-detail{margin:0}
 .task-detail-body{display:none;margin-top:2px;padding:6px 8px;background:var(--secondary);border-radius:var(--radius);font-size:12px}
-.task-detail-body{display:none;margin-top:4px;padding:8px 10px;background:var(--secondary);border-radius:var(--radius);font-size:12px}
+.task-detail-body{display:none;margin-top:var(--space-1);padding:var(--space-2) var(--space-3);background:var(--secondary);border-radius:var(--radius);font-size:12px}
 .task-detail.open .task-detail-body{display:block}
 .task-detail-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:4px 12px}
 .task-detail-item{display:flex;gap:6px;color:var(--muted-foreground)}
@@ -270,8 +273,9 @@ input[type=number]::-webkit-inner-spin-button{opacity:1}
 .task.failed .task-bar-in{background:var(--destructive)}
 .task.preparing .task-bar-in,.task.composing .task-bar-in,.task.running .task-bar-in{animation:task-shimmer 2s ease-in-out infinite}
 @keyframes task-shimmer{0%,100%{opacity:1}50%{opacity:.55}}
-.task-actions{display:flex;gap:6px;justify-content:flex-end}
-.task-btn{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:var(--radius-sm);font-size:11px;font-weight:500;border:1px solid var(--border);background:var(--card);color:var(--foreground);text-decoration:none;transition:background var(--transition-fast),border-color var(--transition-fast)}
+.task-footer{display:flex;align-items:center;gap:var(--space-2);min-width:0;min-height:28px}
+.task-actions{display:flex;gap:var(--space-1);justify-content:flex-end;margin-left:auto;flex-shrink:0}
+.task-btn{display:inline-flex;align-items:center;height:28px;padding:0 var(--space-2);border-radius:var(--radius-sm);font-size:11px;font-weight:500;border:1px solid var(--border);background:var(--card);color:var(--foreground);text-decoration:none;transition:background var(--transition-fast),border-color var(--transition-fast),color var(--transition-fast),transform var(--transition-press)}
 .task-btn:hover{border-color:var(--muted-foreground);background:var(--muted)}
 .task-btn-primary{background:var(--primary);border-color:var(--primary);color:var(--background)}
 .task-btn-primary:hover{background:var(--primary-hover);border-color:var(--primary-hover);color:var(--background)}
@@ -536,7 +540,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:1}
 <div id="app"></div>
 <script>
 const HUB_URL='https://hub.onebugmanai.online';
-const APP_VERSION='1.9.16';
+const APP_VERSION='1.9.18';
 let API=window.location.origin;
 let token=localStorage.getItem('antbot-token');
 let tasks=[];
@@ -1115,6 +1119,12 @@ function bindEvents(){
     }
     const detailToggle=e.target.closest('[data-task-detail]');
     if(detailToggle){detailToggle.classList.toggle('open');const d=detailToggle.closest('.task-inner')?.querySelector('.task-detail');if(d)d.classList.toggle('open');return;}
+    const taskBlank=e.target.closest('.task');
+    if(taskBlank&&taskBlank.querySelector('.task-detail')&&!e.target.closest('button,a,input,select,textarea,[data-stack-toggle]')){
+      taskBlank.querySelector('.task-detail')?.classList.toggle('open');
+      taskBlank.querySelector('[data-task-detail]')?.classList.toggle('open');
+      return;
+    }
     const actBtn=e.target.closest('[data-action]');
     if(!actBtn)return;
     const actId=actBtn.dataset.id;
@@ -2026,7 +2036,7 @@ function taskCard(t,live){
   const origTag='<span class="task-title-orig">'+origLabel+'</span>';
   const titleMeta=idx?'<span class="task-title-index">任务 '+idx+'</span>':'';
   const retrying=t.retryCount>0&&st==='running';
-  const expectedUnpublished=st==='warning'&&/自动发布已关闭|成品已生成/.test(String(t.message||''));
+  const expectedUnpublished=st==='warning'&&!!t.outputPath;
   const badge=retrying?('重试中 ('+t.retryCount+')'):st==='cancelling'?'取消中':expectedUnpublished?'待发布':statusText(st);
   const isCompleted=st==='completed'||st==='warning';
   const isCancelling=st==='cancelling';
@@ -2074,10 +2084,11 @@ function taskCard(t,live){
   if(st==='failed'&&t.outputPath&&r.processMode==='publish')acts.push('<button class="task-btn" data-action="republish" data-id="'+esc(taskId)+'">重发</button>');
   if(r.videoUrl)acts.push('<a class="task-btn" href="'+esc(r.videoUrl)+'" target="_blank" rel="noreferrer">复制</a>');
   const actsHtml=acts.length?('<div class="task-actions">'+acts.join('')+'</div>'):'';
+  const footerHtml=msg||actsHtml?'<div class="task-footer">'+msg+actsHtml+'</div>':'';
   const timeStr=t.startedAt||t.enqueuedAt?('<span class="task-time">'+esc(fmtGroupTime(t.startedAt||t.enqueuedAt))+'</span>'):'';
 
   /* 徽章放行尾 → 状态落在卡片右上角（title 占左，与桌面端一致） */
-  const inner='<div class="task-inner"><div class="task-head"><div class="task-title" title="'+esc(title)+'">'+esc(title)+' '+origTag+' '+titleMeta+'</div>'+detailToggle+timeStr+'<div class="task-badge">'+esc(badge)+'</div></div>'+metaHtml+detailHtml+progressHtml+msg+actsHtml+'</div>';
+  const inner='<div class="task-inner"><div class="task-head"><div class="task-head-main"><div class="task-title" title="'+esc(title)+'">'+esc(title)+' '+origTag+' '+titleMeta+'</div>'+detailToggle+'</div><div class="task-head-side">'+timeStr+'<div class="task-badge">'+esc(badge)+'</div></div></div>'+metaHtml+detailHtml+progressHtml+footerHtml+'</div>';
   const overlay=isCancelling?'<div class="task-cancelling">取消中...</div>':'';
   return '<div class="task '+esc(st)+'">'+inner+overlay+'</div>';
 }
