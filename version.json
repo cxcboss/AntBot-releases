@@ -1,9 +1,9 @@
 {
-  "version": "1.9.18",
-  "publishedAt": "2026-09-03T13:09:57Z",
+  "version": "1.9.19",
+  "publishedAt": "2026-09-18T00:53:50Z",
   "files": {
     "remote-ui/index.html": {
-      "sha256": "09e901f4c0915ac1cdc4fee8a7c3fdaf35dc33314a15e0714b5e75937c6a344b"
+      "sha256": "763206f74e851513b708e57a631c9c4f037ca26936c85b13afadde8b9b972dc4"
     },
     "hub/index.html": {
       "sha256": "a9623b1a827918a67b572da4504f1383ca00cde88f8482d61a7f05f6cce7637d"

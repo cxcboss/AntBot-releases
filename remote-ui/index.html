@@ -204,7 +204,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:1}
 .task-stack{width:100%;max-width:360px}
 .chat-time-divider{display:flex;justify-content:center;padding:20px 0 6px;font-size:11px;color:var(--muted-foreground)}
 .msg-user{position:relative;align-self:flex-end;display:flex;flex-direction:column;align-items:flex-end;cursor:default}
-.msg-content{max-width:72%;padding:8px 12px;border-radius:var(--radius-lg);background:var(--accent);color:var(--accent-foreground);font-size:13px;line-height:1.6;white-space:pre-wrap;word-break:break-word}
+.msg-content{max-width:100%;width:fit-content;padding:8px 12px;border-radius:var(--radius-lg);background:var(--accent);color:var(--accent-foreground);font-size:13px;line-height:1.6;white-space:pre-wrap;word-break:normal;overflow-wrap:anywhere}
 .hidden{display:none!important}
 [hidden]{display:none!important}
 
@@ -540,7 +540,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:1}
 <div id="app"></div>
 <script>
 const HUB_URL='https://hub.onebugmanai.online';
-const APP_VERSION='1.9.18';
+const APP_VERSION='1.9.19';
 let API=window.location.origin;
 let token=localStorage.getItem('antbot-token');
 let tasks=[];
@@ -2219,15 +2219,22 @@ function renderTimeline(){
       tasksHtml+'</div>');
   };
 
+  // 历史去重仍以最新记录优先；展示时则和实时任务统一按时间升序，确保旧消息在上、新消息在下。
+  const timelineGroups=[];
   visibleHistoryGroups.forEach(g=>{
-    /* 历史记录只显示消息气泡+任务卡片，不渲染规则面板（与 App 对齐） */
-    group(g.at,g.txt,null,g.items.map(i=>({...i,id:taskExecutionId(i),history:true})),false,'h:'+(g.at||''),g.id);
+    timelineGroups.push({
+      at:g.at, txt:g.txt, live:false, key:'h:'+(g.at||''), recordId:g.id,
+      items:g.items.map(i=>({...i,id:taskExecutionId(i),history:true}))
+    });
   });
-
   liveGroups.forEach(g=>{
-    const txt=g.tasks.map(t=>t.rawLine).filter(Boolean).join('\n');
-    group(g.at,txt,null,g.tasks,true,'l:'+(g.tasks[0]?.batchRunId||g.at||''));
+    timelineGroups.push({
+      at:g.at, txt:g.tasks.map(t=>t.rawLine).filter(Boolean).join('\n'), live:true,
+      key:'l:'+(g.tasks[0]?.batchRunId||g.at||''), items:g.tasks
+    });
   });
+  timelineGroups.sort((a,b)=>(Date.parse(a.at)||0)-(Date.parse(b.at)||0));
+  timelineGroups.forEach(g=>group(g.at,g.txt,null,g.items,g.live,g.key,g.recordId));
 
   el.innerHTML=parts.join('');
   if(chat){
