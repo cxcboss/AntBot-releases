@@ -199,7 +199,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:1}
 .chat-search input::placeholder{color:var(--muted-foreground)}
 .chat{flex:1;overflow-y:auto;padding:0 var(--space-4) var(--space-10)}
 .chat-stream{display:flex;flex-direction:column;max-width:640px;margin:0 auto;min-height:100%}
-.run-group{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:0 0 4px}
+.run-group{display:flex;flex-direction:column;align-items:flex-start;gap:var(--space-2);padding:0 0 var(--space-2)}
 .run-group.ctx-selected{opacity:.45}
 .task-stack{width:100%;max-width:360px}
 .chat-time-divider{display:flex;justify-content:center;padding:20px 0 6px;font-size:11px;color:var(--muted-foreground)}
@@ -211,7 +211,8 @@ input[type=number]::-webkit-inner-spin-button{opacity:1}
 /* 规则面板 */
 
 /* 任务卡片集合：折叠态保留首卡与两层叠影，展开在同一视觉锚点内完成 */
-.task-stack{display:flex;flex-direction:column;gap:var(--space-1)}
+.task-stack{display:flex;flex-direction:column;gap:var(--space-2)}
+.task-stack>.task+.task{margin-top:var(--space-1)}
 .task-stack-summary{display:inline-flex;align-items:center;gap:var(--space-1);align-self:flex-start;min-height:24px;padding:0 var(--space-2);border:0;border-radius:var(--radius-full);background:var(--muted);color:var(--muted-foreground);font-size:11px;font-weight:500;cursor:pointer;transition:background var(--transition-fast),color var(--transition-fast)}
 .task-stack-summary:hover{background:var(--accent);color:var(--accent-foreground)}
 .task-stack-summary:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
@@ -229,7 +230,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:1}
 .task-stack.collapsed .task-stack-preview{max-height:240px;margin-top:var(--space-1);padding-right:var(--space-2);padding-bottom:var(--space-2);overflow:visible;opacity:1;pointer-events:auto}
 .task-stack.collapsed .task-stack-preview::before,.task-stack.collapsed .task-stack-preview::after{opacity:1}
 .task-stack-cards{display:grid;grid-template-rows:1fr;opacity:1;transform:translateY(0);transition:grid-template-rows var(--transition-normal),opacity var(--transition-normal),transform var(--transition-normal)}
-.task-stack-cards-inner{display:flex;flex-direction:column;min-height:0;gap:var(--space-2);overflow:hidden}
+.task-stack-cards-inner{display:flex;flex-direction:column;min-height:0;gap:var(--space-3);overflow:hidden}
 .task-stack.collapsed .task-stack-cards{grid-template-rows:0fr;opacity:0;transform:translateY(calc(var(--space-1)*-1));pointer-events:none}
 .task{position:relative;overflow:hidden;border:1px solid var(--border);border-radius:var(--radius);background:var(--card);width:100%;max-width:360px;transition:border-color var(--transition-fast)}
 .task:has(.task-detail){cursor:pointer}
@@ -540,7 +541,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:1}
 <div id="app"></div>
 <script>
 const HUB_URL='https://hub.onebugmanai.online';
-const APP_VERSION='1.9.19';
+const APP_VERSION='1.9.20';
 let API=window.location.origin;
 let token=localStorage.getItem('antbot-token');
 let tasks=[];
